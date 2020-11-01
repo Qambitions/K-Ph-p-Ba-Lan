@@ -12,7 +12,7 @@ string operatorr[] = {"+" , "-" , "*" , "/" , "^"};
 int check_in_operator(string x)
 {
     if (x=="(" || x==")") return -1;
-    for (int i=0; i < sizeof(operatorr); i++)
+    for (int i=0; i < 5; i++)
         if (x==operatorr[i])
         {
             if (i==0 || i==1) return 1;
@@ -22,13 +22,34 @@ int check_in_operator(string x)
     return 0;
 }
 
-void ba_lan(stack< ci > &st, vector<string> &v, string x, int priority)
+void caculate_balan(vector<string> &v)
 {
+     string x = v[v.size()-1];
+     v.pop_back();
+     double b = stod(v[v.size()-1]);
+     v.pop_back();
+     double a = stod(v[v.size()-1]);
+     v.pop_back();
+     if (x=="+") a+=b;
+     else if (x=="-") a-=b;
+     else if (x=="*") a*=b;
+      else if (x=="/") a/=b;
+      else if (x=="^") a = pow(a,b);
+     v.push_back(to_string(a));
+}
+
+
+void ba_lan(stack< ci > &st, vector<string> &v, string x, int priority,int mode)
+{
+     //cout << x << "\n";
     if (priority == -1)
-    {
-        while (!!st.empty() && st.top().fi != "(")
+          if (x == "(") st.push(ci("(",-1));
+    else
+     {
+        while (!st.empty() && st.top().fi != "(")
          {
                 v.push_back(st.top().fi);
+                if (mode==1) {caculate_balan(v); /*cout << v[v.size()-1] << '\n';*/}// mode -c
                 st.pop();
         }
         st.pop();
@@ -40,10 +61,14 @@ void ba_lan(stack< ci > &st, vector<string> &v, string x, int priority)
             if (st.top().se > priority) // dk push vao queue
             {
                 v.push_back(st.top().fi);
+                if (mode==1) {caculate_balan(v); /*cout << v[v.size()-1] << '\n';*/}// mode -c
+
                 st.pop();
             } else break;
+          st.push(ci(x,priority));
     }
 }
+
 
 int main(int arsc, char *arsv[])
 {
@@ -57,10 +82,10 @@ int main(int arsc, char *arsv[])
         cin >> s_inp[i];
 
 
-
     //------------------------------------------------
     stack < ci > st;
     st.push(ci("(",-1));
+    int mode=0;
     vector <string> v;
     for (int i=0; i<n_inp; i++)
         if (s_inp[i] == "{" || s_inp[i] == "[") s_inp[i] = "(";
@@ -70,9 +95,10 @@ int main(int arsc, char *arsv[])
     {
         int priority = check_in_operator(s_inp[i]);
         if (priority == 0) v.push_back(s_inp[i]);
-        else ba_lan(st,v,s_inp[i],priority);
+        else ba_lan(st,v,s_inp[i],priority,0);
+
     }
-    ba_lan(st,v,")",-1);
+    ba_lan(st,v,")",-1,1);
 
     for (int i=0; i<v.size(); i++)
         cout << v[i] << " ";
