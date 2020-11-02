@@ -1,5 +1,6 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include <string>
 
 #define ci pair<string,int>
 #define fi first
@@ -9,6 +10,7 @@ using namespace std;
 
 string operatorr[] = {"+" , "-" , "*" , "/" , "^"}; //operator
 string ERRORR = "E";
+string ME = "Math Error";
 int check_in_operator(string x) //dinh do uu tien
 {
     if (x=="(" || x==")") return -1;
@@ -24,10 +26,15 @@ int check_in_operator(string x) //dinh do uu tien
 
 void caculate_balan(vector<string> &v) //thuc hien phep tinh
 {
+     //cout << v[v.size()-1] << ' ';
      string x = v[v.size()-1];
      v.pop_back();
+
+     //cout << v[v.size()-1] << ' ';
      double b = stod(v[v.size()-1]);
      v.pop_back();
+
+     //cout << v[v.size()-1] << ' ';
      double a = stod(v[v.size()-1]);
      v.pop_back();
      if (x=="+") a+=b;
@@ -36,7 +43,7 @@ void caculate_balan(vector<string> &v) //thuc hien phep tinh
       else if (x=="/")
       {
            if (b==0) // div / 0
-               throw "Math Error";
+               throw ME;
            a/=b;
       }
       else if (x=="^") a = pow(a,b);
@@ -47,18 +54,22 @@ void caculate_balan(vector<string> &v) //thuc hien phep tinh
 void ba_lan(stack< ci > &st, vector<string> &v, string x, int priority,int mode)
 {
      //cout << x << "\n";
-    if (priority == -1)
+    if (priority == -1) //gap dau ( hoac )
           if (x == "(") st.push(ci("(",-1));
     else
      {
         while (!st.empty() && st.top().fi != "(")
          {
                 v.push_back(st.top().fi);
+                //cout << st.top().fi << '\n';
                 if (mode==1) {caculate_balan(v); /*cout << v[v.size()-1] << '\n';*/}// mode -c
                 st.pop();
         }
         st.pop();
-    } else if (st.top().se <= priority) //dk push vao stack
+        return;
+    }
+  
+    if (st.top().se <= priority) //dk push vao stack
         st.push(ci(x,priority));
     else
     {
@@ -84,20 +95,21 @@ void do_balan(int n_inp, string s_inp[], int mode) // ham main de tinh tuong len
         else if (s_inp[i] == "}" || s_inp[i] == "]") s_inp[i] = ")";
 
      try{
-    for (int i=0; i<n_inp; i++)                           // run ba lan
-    {
-        int priority = check_in_operator(s_inp[i]);
-        if (priority == 0) v.push_back(s_inp[i]);
-        else ba_lan(st,v,s_inp[i],priority,mode);
+         for (int i=0; i<n_inp; i++)                           // run ba lan
+         {
+               if (s_inp[i]=="") continue;
+             int priority = check_in_operator(s_inp[i]);
+             if (priority == 0) v.push_back(s_inp[i]);
+             else ba_lan(st,v,s_inp[i],priority,mode);
 
-    }
+         }
 
-    ba_lan(st,v,")",-1,mode);
+         ba_lan(st,v,")",-1,mode);
 
-    for (int i=0; i<v.size(); i++)
-        cout << v[i] << " ";
+         for (int i=0; i<v.size(); i++)
+             cout << v[i] << " ";
      }
-     catch (string error) // catch error
+     catch (const string &error) // catch error
      {
           cout << "Math Error \n";
      }
@@ -138,11 +150,13 @@ void make_arr(string tmp, string arr[], int &n_arr) throw(string)// dinh dang de
 int main(int arsc, char *arsv[])
 {
      // prepare from cmd
+     for (int i=0; i<arsc; i++)
+          cout << arsv[i] << "\n";
      freopen(arsv[1],"r",stdin);
      freopen(arsv[4],"w",stdout);
      int n;
      try{
-          n = atoi(arsv[2]);
+          n = stoi(arsv[2]);
      }
      catch (invalid_argument &e){
           cout << "Error cmd";
@@ -150,16 +164,16 @@ int main(int arsc, char *arsv[])
      }
 
      int act;
-     if (arsv[3] == "-t") act = 0;
-     else if (arsv[3] == "-c") act = 1;
+     if (strlen(arsv[3]) == 2 && arsv[3][0] == '-' && arsv[3][1] == 't') act = 0;
+     else if (strlen(arsv[3]) == 2 && arsv[3][0] == '-' && arsv[3][1] == 'c') act = 1;
      else {
-          cout << "Error cmd";
+
           return 0;
      }
     //------------------------------------------------
     // time to do
-    //int n=1,act=0;
-    freopen("inp.inp","r",stdin);
+//    int n=1,act=1;
+   // freopen("inp.inp","r",stdin);
      for (int i=0; i<n; i++)
      {
           string tmp;
@@ -169,7 +183,8 @@ int main(int arsc, char *arsv[])
           try{
 
                 make_arr(tmp,arr,n_arr);//dinh dang input
-
+//               for (int i=0; i<n_arr; i++)
+//                    cout << arr[i] << '\n';
                do_balan(n_arr,arr,act);
           }
          // catch(invalid_argument &e) {cout << "E \n";}  // catch error
@@ -179,3 +194,5 @@ int main(int arsc, char *arsv[])
     return 0;
 }
 
+//g++ -std=c++11 main.cpp
+//a.exe "D:\c++ source\codeblock\ky phap ba lan\inp.inp" 1 -t "D:\c++ source\codeblock\ky phap ba lan\out.out"
